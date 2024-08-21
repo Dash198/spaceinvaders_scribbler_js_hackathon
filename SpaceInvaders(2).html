@@ -1,0 +1,183 @@
+<html>
+<head>
+<link rel='stylesheet' href='https://app.scribbler.live/codemirror/codemirror.css'>
+<link rel='stylesheet' href='https://app.scribbler.live/codemirror/cobalt.css'>
+<link rel='stylesheet' href='https://app.scribbler.live/codemirror/duotone-light.css'>
+<link rel='stylesheet' href='https://app.scribbler.live/codemirror/show-hint.css'>
+<link rel='stylesheet' href='https://app.scribbler.live/css/pico.min.css'>
+<link rel='stylesheet' href='https://app.scribbler.live/css/style.css'>
+<title>SpaceInvaders:Scribbler Notebook</title>
+</head>
+<body>
+<br>
+<div class="container">
+
+<article ondblclick="sandbox.toggleEditor(0)" style="display:flex" id="result0"><p class="status" id="status0" style="display: none;"></p> <div class="output" id="output0"><h1>Space Invaders Prototype</h1>
+<style>
+	      /* CSS styles for simulation canvas */
+	      canvas {
+	        border: 1px solid black;
+	      }
+	    </style>
+ A simple space invaders level using js and a canvas inside of scribbler (first time using js and i chose this :D)</div></article>
+
+<article ondblclick="sandbox.toggleEditor(1)" style="display:flex" id="result1"><p class="status" id="status1" style="display: none;"></p> <div class="output" id="output1"><h5>Space Invaders!</h5>
+
+<p><canvas id="gameWindow" width="800" height="600"></canvas></p>
+</div></article>
+
+<script>
+//getting canvas
+const canvas=document.getElementById("gameWindow");
+const ctx=canvas.getContext('2d');
+console.log("Canvas initialised");
+
+let gameOver=false;		//checking for game over
+let xoffset=50;		//offset for boundedness
+let boffset=10;		//offset for bullet generation
+let lastShotTime=Date.now();
+let shotCoolDown=500;
+
+//player object
+let player={
+  
+	x: canvas.width/2,	//inital x
+  	y: canvas.height-50,	//initial y
+  	rectHeight: 20,	//height of rect
+  	rectWidth: 50,	//width of rect
+  	vel: 0.8,	//speed
+  	dir: 0,	//direction of motion
+  	shoot: false,	//whether player is shooting or not
+  	draw: function(){	//function to draw the player
+		ctx.fillStyle='Lime';
+  		ctx.fillRect(this.x,this.y,this.rectWidth,this.rectHeight);
+	}
+};
+
+let bullets=[];		//array to store any active bullets the player shoots
+let aliens=[];
+
+//checking for key press
+document.addEventListener("keydown",(event)=>{
+	if(event.key==='ArrowLeft' || event.key==='a'){
+	  //moves to the left
+		player.dir=-1;
+	}
+  else if(event.key==='ArrowRight' || event.key==='d'){
+		//moves to the right
+  		player.dir=1;
+  }
+  else if(event.key==='g'){
+		//checks for shooting
+		if(Date.now()-lastShotTime>=shotCoolDown){
+  			player.shoot=true;
+		}
+  }
+});
+
+//checking for key lift
+document.addEventListener("keyup",(event)=>{
+	if(event.key==='ArrowLeft' || event.key==='ArrowRight' || event.key==='a' || event.key==='d'){
+	  //stops moving
+		player.dir=0;
+	}
+  else if(event.key==='g'){
+	//stops shooting
+  		player.shoot=false;
+  }
+});
+
+function initaliseAliens(){
+	let curX=50;		//dimentsions are 60x30
+  	let curY=50;		//inital x and y offset
+  	let rows=5;			//no of rows
+  	let columns=9;	//no of columns
+  	for(let i=1;i<=rows;i++){
+		let row=[];		
+	  	for(let j=1;j<=columns;j++){
+			row.push({		//adding an alien to a row
+				posx: curX,
+			  	posy: curY,
+			  	vel: 1,
+			  	dir: 1,
+			  	height: 30,
+			  	width: 60
+			});
+		  	curX+=80;
+		}
+	  	aliens.push(row);		//adding a row to the alien matrix
+	  	curY+=50;
+	  	curX=50;
+	}
+}
+
+//fn to draw the player
+drawCanvas=function(){
+  //clearing canvas
+  ctx.clearRect(0,0,canvas.width,canvas.height);
+  player.draw() 	//drawing player
+  
+  aliens.forEach(function(row){
+  	row.forEach(function(alien){
+		ctx.fillStyle = 'White';
+        ctx.fillRect(alien.posx, alien.posy, alien.width, alien.height);
+	});
+  });
+  
+  bullets.forEach(function(bullet) {	//drawing bullets
+        ctx.fillStyle = 'White';
+        ctx.fillRect(bullet.x, bullet.y, bullet.width, bullet.height);
+    });
+}
+
+//updating
+function update(){
+  //checking for boundedness
+  	if ((player.dir==-1 && (player.x-(player.rectWidth/2)>0)) || (player.dir==1 && (player.x+(player.rectWidth/2)<canvas.width-xoffset))){
+		player.x+=player.vel*player.dir;
+	}
+  	if (player.shoot==true){
+	  //generate a bullet and add it to the active bullets array
+		bullets.push({
+			x: player.x+player.rectWidth/2,
+		  	y: player.y - boffset,
+		  	width: 2,
+		  	height: 10,
+		  	vel: 1,
+		});
+	  lastShotTime=Date.now()
+	  player.shoot=false;	//make it false so that multiple bullets don't shoot
+	}
+	  // Update bullet positions
+    bullets.forEach(function(bullet) {
+        bullet.y -= bullet.vel;
+    });
+
+    // Remove bullets that have gone off-screen
+    bullets = bullets.filter(function(bullet) {
+        return bullet.y > 0;
+    });
+	
+}
+
+//setting up the inital game state
+function initialise(){
+  	initaliseAliens();
+	drawCanvas()		//drawing the canvas initally
+}
+
+//main game loop
+function gameLoop(){
+  
+	update(); 	//updates game state
+  	drawCanvas(); 		//draws the current game state after updating
+  
+  	requestAnimationFrame(gameLoop);	//calling the loop again
+}
+
+//calling the game loop
+initialise();
+gameLoop();
+</script>
+
+<article ondblclick="sandbox.toggleEditor(2)" style="display:flex" id="result2"><p class="status" id="status2" style="display: inline;">[5]<br><span style="font-size:8px">1ms<span></span></span></p> <div class="output" id="output2" style="display: inline;"></div></article></div></body></html>
